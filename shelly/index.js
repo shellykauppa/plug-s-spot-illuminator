@@ -1,6 +1,6 @@
 /**
   A script for reflecting electricity spot price in the LED light of a
-  Shelly Plus Plug (S) using api.spot-hinta.fi.
+  Shelly Plug S (Plus / Gen3) using api.spot-hinta.fi.
 
   Author: antti@shellykauppa.fi (Kotia Finland Inc.)
   Source: https://github.com/shellykauppa/plus-plug-spot-illuminator
@@ -8,6 +8,12 @@
 
   Spot-hinta.fi service is not related to the author of this script. Support
   their good work here: https://www.buymeacoffee.com/spothintafi
+
+  A note on memory; The matter gen3 firmware 1.2.3-matter22 slashes the
+  per script memory to a mere third, 7000 bytes. The css color table just
+  won't fit there as the runtime memory ex lookup is _around_ 5kB. The lookup
+  is chopped into parts and only one exists in memory at a time. Note that
+  there is less than 1kB of memory headroom and that might not hold all times.
 */
 
 /* global Shelly, Timer, die */
@@ -34,8 +40,12 @@ let API_HOST = "https://api.spot-hinta.fi";
 
 let PRICE_URL = API_HOST + "/JustNow?region=" + spotHintaRegion;
 
-// CSS color name map
-let COLOR_NAMES=[
+// CSS color name map. This idiotic structure exists to
+// bypass the Shelly Plug S Matter Gen3 per-script runtime memory limit of
+// 7000 bytes. The original structure takes around 15kB of runtime memory
+// causing it to crash instantly. No block is no more than 2kB in size
+// so memory limit is respected.
+const COLOR_NAMES = [ function() { return [
 {name:'aliceblue',rgb:'#F0F8FF'},
 {name:'antiquewhite',rgb:'#FAEBD7'},
 {name:'aqua',rgb:'#00FFFF'},
@@ -50,7 +60,7 @@ let COLOR_NAMES=[
 {name:'brown',rgb:'#A52A2A'},
 {name:'burlywood',rgb:'#DEB887'},
 {name:'cadetblue',rgb:'#5F9EA0'},
-{name:'chartreuse',rgb:'#7FFF00'},
+{name:'chartreuse',rgb:'#7FFF00'}, ]; }, function() { return [
 {name:'chocolate',rgb:'#D2691E'},
 {name:'coral',rgb:'#FF7F50'},
 {name:'cornflowerblue',rgb:'#6495ED'},
@@ -65,7 +75,7 @@ let COLOR_NAMES=[
 {name:'darkgrey',rgb:'#A9A9A9'},
 {name:'darkkhaki',rgb:'#BDB76B'},
 {name:'darkmagenta',rgb:'#8B008B'},
-{name:'darkolivegreen',rgb:'#556B2F'},
+{name:'darkolivegreen',rgb:'#556B2F'}, ]; }, function() { return [
 {name:'darkorange',rgb:'#FF8C00'},
 {name:'darkorchid',rgb:'#9932CC'},
 {name:'darkred',rgb:'#8B0000'},
@@ -80,7 +90,7 @@ let COLOR_NAMES=[
 {name:'deepskyblue',rgb:'#00BFFF'},
 {name:'dimgray',rgb:'#696969'},
 {name:'dimgrey',rgb:'#696969'},
-{name:'dodgerblue',rgb:'#1E90FF'},
+{name:'dodgerblue',rgb:'#1E90FF'}, ]; }, function() { return [
 {name:'firebrick',rgb:'#B22222'},
 {name:'floralwhite',rgb:'#FFFAF0'},
 {name:'forestgreen',rgb:'#228B22'},
@@ -95,7 +105,7 @@ let COLOR_NAMES=[
 {name:'grey',rgb:'#808080'},
 {name:'honeydew',rgb:'#F0FFF0'},
 {name:'hotpink',rgb:'#FF69B4'},
-{name:'indianred',rgb:'#CD5C5C'},
+{name:'indianred',rgb:'#CD5C5C'}, ]; }, function() { return [
 {name:'indigo',rgb:'#4B0082'},
 {name:'ivory',rgb:'#FFFFF0'},
 {name:'khaki',rgb:'#F0E68C'},
@@ -110,7 +120,7 @@ let COLOR_NAMES=[
 {name:'lightgray',rgb:'#D3D3D3'},
 {name:'lightgreen',rgb:'#90EE90'},
 {name:'lightgrey',rgb:'#D3D3D3'},
-{name:'lightpink',rgb:'#FFB6C1'},
+{name:'lightpink',rgb:'#FFB6C1'}, ]; }, function() { return [
 {name:'lightsalmon',rgb:'#FFA07A'},
 {name:'lightseagreen',rgb:'#20B2AA'},
 {name:'lightskyblue',rgb:'#87CEFA'},
@@ -125,7 +135,7 @@ let COLOR_NAMES=[
 {name:'maroon',rgb:'#800000'},
 {name:'mediumaquamarine',rgb:'#66CDAA'},
 {name:'mediumblue',rgb:'#0000CD'},
-{name:'mediumorchid',rgb:'#BA55D3'},
+{name:'mediumorchid',rgb:'#BA55D3'},  ]; }, function() { return [
 {name:'mediumpurple',rgb:'#9370DB'},
 {name:'mediumseagreen',rgb:'#3CB371'},
 {name:'mediumslateblue',rgb:'#7B68EE'},
@@ -140,7 +150,7 @@ let COLOR_NAMES=[
 {name:'navy',rgb:'#000080'},
 {name:'oldlace',rgb:'#FDF5E6'},
 {name:'olive',rgb:'#808000'},
-{name:'olivedrab',rgb:'#6B8E23'},
+{name:'olivedrab',rgb:'#6B8E23'}, ]; }, function() { return [
 {name:'orange',rgb:'#FFA500'},
 {name:'orangered',rgb:'#FF4500'},
 {name:'orchid',rgb:'#DA70D6'},
@@ -155,7 +165,7 @@ let COLOR_NAMES=[
 {name:'plum',rgb:'#DDA0DD'},
 {name:'powderblue',rgb:'#B0E0E6'},
 {name:'purple',rgb:'#800080'},
-{name:'rebeccapurple',rgb:'#663399'},
+{name:'rebeccapurple',rgb:'#663399'}, ]; }, function() { return [
 {name:'red',rgb:'#FF0000'},
 {name:'rosybrown',rgb:'#BC8F8F'},
 {name:'royalblue',rgb:'#4169E1'},
@@ -170,7 +180,7 @@ let COLOR_NAMES=[
 {name:'slateblue',rgb:'#6A5ACD'},
 {name:'slategray',rgb:'#708090'},
 {name:'slategrey',rgb:'#708090'},
-{name:'snow',rgb:'#FFFAFA'},
+{name:'snow',rgb:'#FFFAFA'}, ]; }, function() { return [
 {name:'springgreen',rgb:'#00FF7F'},
 {name:'steelblue',rgb:'#4682B4'},
 {name:'tan',rgb:'#D2B48C'},
@@ -184,7 +194,7 @@ let COLOR_NAMES=[
 {name:'whitesmoke',rgb:'#F5F5F5'},
 {name:'yellow',rgb:'#FFFF00'},
 {name:'yellowgreen',rgb:'#9ACD32'}
-];
+]; } ];
 
 // See README.md#Notes, use with care
 let DEBUG = false;
@@ -309,13 +319,34 @@ function RGBStringToShellyValues(rgbString) {
   ]);
 }
 
+// Iterate through the list of css color lookuptable parts and
+// crash if color name is not found.
 function colorNameToRGBString(name){
 
-  for( let i=0; i < COLOR_NAMES.length ; i++ ) {
-    if( COLOR_NAMES[i].name === name )
-      return COLOR_NAMES[i].rgb;
+  let ret = false;
+  let lookup = null;
+
+  // Iterate all lookup table parts.
+  for( let i = 0; i < COLOR_NAMES.length; i++ ) {
+
+    lookup = COLOR_NAMES[i]();
+
+    for( let j=0; j < lookup.length ; j++ ) {
+      if( lookup[j].name === name ) {
+        ret = lookup[j].rgb;
+        break;
+      }
+    }
+
+    lookup = null; // Free the memory.
+    if( ret )
+      break;
   }
-  die("PPI: color " + name + " not in color map - crash");
+
+  if(!ret)
+    die("PPI: color " + name + " not in color map - crash");
+
+  return ret;
 }
 
 function brightnessInRange(brightness) {
