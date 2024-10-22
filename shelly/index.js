@@ -3,7 +3,7 @@
   Shelly Plug S (Plus / Gen3) using api.spot-hinta.fi.
 
   Author: antti@shellykauppa.fi (Kotia Finland Inc.)
-  Source: https://github.com/shellykauppa/plus-plug-spot-illuminator
+  Source: https://github.com/shellykauppa/plug-s-spot-illuminator
   License: MIT
 
   Spot-hinta.fi service is not related to the author of this script. Support
