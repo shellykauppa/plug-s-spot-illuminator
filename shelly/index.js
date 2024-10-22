@@ -223,8 +223,10 @@ function configureLight(shellyRGB, onBrightness, offBrightness) {
       offColorConfig.brightness = offBrightness;
       uiConfig.leds.colors["switch:0"].off = offColorConfig;
 
-      // This call would fail in firmware 1.0.0-beta up to at least 1.0.8:
+      // This call fails in 1.x.x firmware (tested up to 1.4.4) in Plus Plug S. In
+      // Gen3 fw 1.2.3-matter22 it works, but we don't want a separate branch for it.
       // Shelly.call( "PLUGS_UI.SetConfig", { config: uiConfig }, reportConfigError )
+
       // Hence, using the rpc api to achieve the same.
       let configUrl = "http://localhost/rpc/PLUGS_UI.SetConfig?config=" + JSON.stringify(uiConfig);
       Shelly.call("HTTP.Request", { method: "GET", url: configUrl, timeout: 15, ssl_ca: "*" }, reportConfigError);
