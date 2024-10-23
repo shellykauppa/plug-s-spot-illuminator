@@ -1,6 +1,6 @@
 {
   "name": "plus-plug-spot-illuminator",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A Shelly Script for retrieving and indicating electricity spot prices in the LED of Shelly Plug S (Plus / Gen3) using spot-hinta.fi. Includes a dummy server for testing.",
   "author": "antti@shellykauppa.fi (Shellykauppa.fi / Kotia Finland Inc.)",
   "main": "index.js",
